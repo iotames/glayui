@@ -2,10 +2,12 @@ package gtpl
 
 import (
 	"bytes"
+	"fmt"
+
 	// "fmt"
 	"io"
 	// "os"
-	// "path/filepath"
+	"path/filepath"
 	"text/template"
 )
 
@@ -15,24 +17,24 @@ const GTPL_DELIM_LEFT = `<{%`
 const GTPL_DELIM_RIGHT = `%}>`
 
 type Gtpl struct {
-	tplName               string
-	t                     template.Template
+	t                     *template.Template
+	funcMap               template.FuncMap
 	delimLeft, delimRight string
-
-	tplText     string
-	tplFilepath string
-	buff        bytes.Buffer
+	tplText               string
+	tplFilepath           string
+	buff                  bytes.Buffer
 }
 
-func NewTpl(tplName string, leftDelim, rightDelim string) *Gtpl {
+func NewTpl(leftDelim, rightDelim string) *Gtpl {
 	if leftDelim == "" || rightDelim == "" {
 		panic("leftDelim or rightDelim could not be empty")
 	}
-	if tplName == "" {
-		tplName = GTPL_NAME
-	}
-	t := createTpl(tplName).Delims(leftDelim, rightDelim)
-	return &Gtpl{tplName: tplName, t: *t, delimLeft: leftDelim, delimRight: rightDelim}
+	return &Gtpl{delimLeft: leftDelim, delimRight: rightDelim}
+}
+
+func (g *Gtpl) SetTemplate(t *template.Template) *Gtpl {
+	g.t = t
+	return g
 }
 
 func (g *Gtpl) SetTplText(tpltext string) *Gtpl {
@@ -40,37 +42,46 @@ func (g *Gtpl) SetTplText(tpltext string) *Gtpl {
 	return g
 }
 
-func (g *Gtpl) SetTplFile(filepath string) *Gtpl {
-	g.tplFilepath = filepath
+func (g *Gtpl) SetTplFile(fpath string) *Gtpl {
+	g.tplFilepath = fpath
 	return g
 }
 
 func (g *Gtpl) SetData(data any, wr io.Writer) error {
 	if g.tplFilepath != "" {
+		if g.t == nil {
+			g.t = createTpl(filepath.Base(g.tplFilepath), g.funcMap).Delims(g.delimLeft, g.delimRight)
+		}
 		t, err := g.t.ParseFiles(g.tplFilepath)
 		if err != nil {
 			return err
 		}
+		result := t.Execute(&g.buff, data)
 		if wr != nil {
 			return t.Execute(wr, data)
 		}
-		return t.Execute(&g.buff, data)
+		return result
+	}
+
+	if g.t == nil {
+		g.t = createTpl(GTPL_NAME, g.funcMap).Delims(g.delimLeft, g.delimRight)
 	}
 	t, err := g.t.Parse(g.tplText)
 	if err != nil {
 		return err
 	}
+	result := t.Execute(&g.buff, data)
 	if wr != nil {
 		return t.Execute(wr, data)
 	}
-	return t.Execute(&g.buff, data)
+	return result
 }
 
 func (g Gtpl) GetBuffer() bytes.Buffer {
 	return g.buff
 }
 
-func (g Gtpl) GetBytes() []byte {
+func (g Gtpl) Bytes() []byte {
 	return g.buff.Bytes()
 }
 
@@ -78,47 +89,41 @@ func (g Gtpl) String() string {
 	return g.buff.String()
 }
 
-// func (g Gtpl) parseFiles(filenames ...string) (*template.Template, error) {
-// 	t := &g.t
-// 	if len(filenames) == 0 {
-// 		// Not really a problem, but be consistent.
-// 		return nil, fmt.Errorf("template: no files named in call to ParseFiles")
-// 	}
+func (g *Gtpl) SetFuncMap(mp template.FuncMap) *Gtpl {
+	g.funcMap = mp
+	return g
+}
 
-// 	for _, filename := range filenames {
-// 		name, b, err := readFileOS(filename)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		s := string(b)
-// 		// First template becomes return value if not already defined,
-// 		// and we use that one for subsequent New calls to associate
-// 		// all the templates together. Also, if this file has the same name
-// 		// as t, this file becomes the contents of t, so
-// 		//  t, err := New(name).Funcs(xxx).ParseFiles(name)
-// 		// works. Otherwise we create a new template associated with t.
-// 		var tmpl *template.Template
-// 		if t == nil {
-// 			t = createTpl(name).Delims(g.delimLeft, g.delimRight) // template.New(name)
-// 		}
-// 		if name == t.Name() {
-// 			tmpl = t
-// 		} else {
-// 			tmpl = t.New(name)
-// 		}
-// 		_, err = tmpl.Parse(s)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 	}
-// 	return t, nil
-// }
+func (g *Gtpl) AddFunc(k string, v any) error {
+	if g.funcMap == nil {
+		g.funcMap = template.FuncMap{k: v}
+		return nil
+	}
+	_, ok := g.funcMap[k]
+	if ok {
+		return fmt.Errorf("the func of key(%s) has exist", k)
+	}
+	g.funcMap[k] = v
+	return nil
+}
 
-// func readFileOS(file string) (name string, b []byte, err error) {
-// 	name = filepath.Base(file)
-// 	b, err = os.ReadFile(file)
-// 	return
-// }
+func createTpl(name string, funcmp template.FuncMap) *template.Template {
+	tpl := template.New(name)
+	if funcmp != nil {
+		tpl = tpl.Funcs(funcmp)
+	}
+	return tpl
+}
+
+var gtpl *Gtpl
+
+func GetTpl() *Gtpl {
+	if gtpl == nil {
+		gtpl = NewTpl(GTPL_DELIM_LEFT, GTPL_DELIM_RIGHT)
+		gtpl.SetFuncMap(getDefaultFuncMap())
+	}
+	return gtpl
+}
 
 func getDefaultFuncMap() template.FuncMap {
 	return template.FuncMap{
@@ -129,8 +134,4 @@ func getDefaultFuncMap() template.FuncMap {
 		// "dbdefault":         dbdefault,
 		"gotype": gotype,
 	}
-}
-
-func createTpl(name string) *template.Template {
-	return template.New(name).Funcs(getDefaultFuncMap())
 }

@@ -2,3 +2,4 @@
 *.db
 /runtime/
 go.sum
+.vscode/

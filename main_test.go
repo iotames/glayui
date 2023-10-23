@@ -17,16 +17,11 @@ func TestTpl(t *testing.T) {
 		Weight float64
 	}
 
-	data := GameStatus{Name: "Harvey", Age: 23}
+	data := GameStatus{Name: "Victor", Age: 399}
 	fpath := `resource/tpl/hello.html`
-	tpl := gtpl.NewTpl("hello.html", gtpl.GTPL_DELIM_LEFT, gtpl.GTPL_DELIM_RIGHT)
+	tpl := gtpl.GetTpl()
 	tpl = tpl.SetTplFile(fpath)
 	// // tpl = tpl.SetTplText(`fhlaksdjflakdjf---<{% .Name %}> : <{% .Age %}>--fadsfadfadfa------`)
-	err := tpl.SetData(data, nil)
-	if err != nil {
-		panic(err)
-	}
-	bf := tpl.GetBuffer()
 
 	f, err := os.OpenFile("runtime/hello.html", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
 	if err != nil {
@@ -34,14 +29,13 @@ func TestTpl(t *testing.T) {
 	}
 	defer f.Close()
 
-	// tt, err := template.ParseFiles(fpath)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// err = tt.Execute(f, data)
-
-	_, err = f.Write(bf.Bytes())
+	err = tpl.SetData(data, f)
 	if err != nil {
 		panic(err)
 	}
+	t.Logf("------getString(%s)---\n", tpl.String())
+}
+
+func TestMain(t *testing.T) {
+	t.Logf("---------MaxHeaderBytes(%d)------\n", 1<<20)
 }

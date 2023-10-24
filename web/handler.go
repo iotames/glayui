@@ -26,10 +26,17 @@ func hello(w http.ResponseWriter, r *http.Request) {
 		Weight float64
 	}
 	data := GameStatus{Name: "Victor", Age: 399}
-	fpath := `resource/tpl/hello.html`
-	tpl = tpl.SetTplFile(fpath)
+	fpath := `resource/tpl/demo/table1.html`
+	err := tpl.SetDataByTplFile(fpath, data, w)
+	if err != nil {
+		fmt.Printf("----服务器错误(%v)---", err)
+	}
+}
 
-	err := tpl.SetData(data, w)
+func debug(w http.ResponseWriter, r *http.Request) {
+	tpl := gtpl.GetTpl()
+	fpath := `resource/tpl/demo/layout.html`
+	err := tpl.SetDataByTplFile(fpath, "hello layout", w)
 	if err != nil {
 		fmt.Printf("----服务器错误(%v)---", err)
 	}

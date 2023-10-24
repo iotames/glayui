@@ -20,8 +20,6 @@ type Gtpl struct {
 	t                     *template.Template
 	funcMap               template.FuncMap
 	delimLeft, delimRight string
-	tplText               string
-	tplFilepath           string
 	buff                  bytes.Buffer
 }
 
@@ -37,39 +35,25 @@ func (g *Gtpl) SetTemplate(t *template.Template) *Gtpl {
 	return g
 }
 
-func (g *Gtpl) SetTplText(tpltext string) *Gtpl {
-	g.tplText = tpltext
-	return g
-}
-
-func (g *Gtpl) SetTplFile(fpath string) *Gtpl {
-	g.tplFilepath = fpath
-	return g
-}
-
-func (g *Gtpl) SetData(data any, wr io.Writer) error {
-	if g.tplFilepath != "" {
-		if g.t == nil {
-			g.t = createTpl(filepath.Base(g.tplFilepath), g.funcMap).Delims(g.delimLeft, g.delimRight)
-		}
-		t, err := g.t.ParseFiles(g.tplFilepath)
-		if err != nil {
-			return err
-		}
-		result := t.Execute(&g.buff, data)
-		if wr != nil {
-			return t.Execute(wr, data)
-		}
-		return result
-	}
-
-	if g.t == nil {
-		g.t = createTpl(GTPL_NAME, g.funcMap).Delims(g.delimLeft, g.delimRight)
-	}
-	t, err := g.t.Parse(g.tplText)
+func (g *Gtpl) SetDataByTplText(tpltext string, data any, wr io.Writer) error {
+	g.t = createTpl(GTPL_NAME, g.funcMap).Delims(g.delimLeft, g.delimRight)
+	t, err := g.t.Parse(tpltext)
 	if err != nil {
 		return err
 	}
+	return g.execTpl(t, data, wr)
+}
+
+func (g *Gtpl) SetDataByTplFile(fpath string, data any, wr io.Writer) error {
+	g.t = createTpl(filepath.Base(fpath), g.funcMap).Delims(g.delimLeft, g.delimRight)
+	t, err := g.t.ParseFiles(fpath)
+	if err != nil {
+		return err
+	}
+	return g.execTpl(t, data, wr)
+}
+
+func (g *Gtpl) execTpl(t *template.Template, data any, wr io.Writer) error {
 	result := t.Execute(&g.buff, data)
 	if wr != nil {
 		return t.Execute(wr, data)

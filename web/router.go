@@ -17,6 +17,7 @@ func GetRoutingList() []Routing {
 	return []Routing{
 		{Path: "/", handler: ctl.Home},
 		{Path: "/hello", handler: hello},
+		{Path: "/debug", handler: debug},
 	}
 }
 

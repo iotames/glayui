@@ -3,12 +3,15 @@ package gtpl
 import (
 	"bytes"
 	"fmt"
+	"io/fs"
 
 	// "fmt"
 	"io"
 	// "os"
 	"path/filepath"
 	"text/template"
+
+	"github.com/iotames/glayui/resource"
 )
 
 const GTPL_NAME = "GTPL_NAME"
@@ -36,7 +39,7 @@ func (g *Gtpl) SetTemplate(t *template.Template) *Gtpl {
 }
 
 func (g *Gtpl) SetDataByTplText(tpltext string, data any, wr io.Writer) error {
-	g.t = createTpl(GTPL_NAME, g.funcMap).Delims(g.delimLeft, g.delimRight)
+	g.t = g.newTpl(GTPL_NAME)
 	t, err := g.t.Parse(tpltext)
 	if err != nil {
 		return err
@@ -45,12 +48,31 @@ func (g *Gtpl) SetDataByTplText(tpltext string, data any, wr io.Writer) error {
 }
 
 func (g *Gtpl) SetDataByTplFile(fpath string, data any, wr io.Writer) error {
-	g.t = createTpl(filepath.Base(fpath), g.funcMap).Delims(g.delimLeft, g.delimRight)
+	g.t = g.newTpl(filepath.Base(fpath))
 	t, err := g.t.ParseFiles(fpath)
 	if err != nil {
 		return err
 	}
 	return g.execTpl(t, data, wr)
+}
+func (g *Gtpl) SetDataFromResource(fpath string, data any, wr io.Writer) error {
+	_, fss, err := resource.GetResourceFile(fpath)
+	if err != nil {
+		return err
+	}
+	return g.SetDataByTplFS(fpath, fss, data, wr)
+}
+func (g *Gtpl) SetDataByTplFS(fpath string, fsfs fs.FS, data any, wr io.Writer) error {
+	g.t = g.newTpl(filepath.Base(fpath))
+	t, err := g.t.ParseFS(fsfs, fpath)
+	if err != nil {
+		return err
+	}
+	return g.execTpl(t, data, wr)
+}
+
+func (g *Gtpl) newTpl(tplName string) *template.Template {
+	return createTpl(tplName, g.funcMap).Delims(g.delimLeft, g.delimRight)
 }
 
 func (g *Gtpl) execTpl(t *template.Template, data any, wr io.Writer) error {

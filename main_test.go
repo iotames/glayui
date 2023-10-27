@@ -17,8 +17,8 @@ func TestTpl(t *testing.T) {
 		Weight float64
 	}
 
-	data := GameStatus{Name: "Victor", Age: 399}
-	fpath := `resource/tpl/demo/table1.html`
+	data := GameStatus{Name: "Victor21", Age: 321}
+
 	tpl := gtpl.GetTpl()
 	f, err := os.OpenFile("runtime/debug.html", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
 	if err != nil {
@@ -26,7 +26,13 @@ func TestTpl(t *testing.T) {
 	}
 	defer f.Close()
 
-	err = tpl.SetDataByTplFile(fpath, data, f) //SetData(data, f)
+	fpath := `tpl/demo/table1.html`
+	// fullpath, fss, err := resource.GetResourceFile(fpath)
+	// t.Logf("---fullpath(%s)2----fss(%+v)--err(%v)----\n", fullpath, fss, err)
+
+	// err = tpl.SetDataByTplFile(fpath, data, f)
+	// err = tpl.SetDataByTplFS(fpath, fss, data, f)
+	err = tpl.SetDataFromResource(fpath, data, f)
 	if err != nil {
 		panic(err)
 	}

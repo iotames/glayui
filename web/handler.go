@@ -26,8 +26,8 @@ func hello(w http.ResponseWriter, r *http.Request) {
 		Weight float64
 	}
 	data := GameStatus{Name: "Victor", Age: 399}
-	fpath := `resource/tpl/demo/table1.html`
-	err := tpl.SetDataByTplFile(fpath, data, w)
+	fpath := `tpl/demo/table1.html`
+	err := tpl.SetDataFromResource(fpath, data, w)
 	if err != nil {
 		fmt.Printf("----服务器错误(%v)---", err)
 	}
@@ -35,8 +35,8 @@ func hello(w http.ResponseWriter, r *http.Request) {
 
 func debug(w http.ResponseWriter, r *http.Request) {
 	tpl := gtpl.GetTpl()
-	fpath := `resource/tpl/demo/layout.html`
-	err := tpl.SetDataByTplFile(fpath, "hello layout", w)
+	fpath := `tpl/demo/layout.html`
+	err := tpl.SetDataFromResource(fpath, "hello layout", w)
 	if err != nil {
 		fmt.Printf("----服务器错误(%v)---", err)
 	}

@@ -5,17 +5,20 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
-	"strings"
 )
+
+const RESOURCE_DIR = "resource"
 
 //go:embed *
 var resourceFs embed.FS
 
-func GetResourceFile(rescpath string) (fullpath string, fss fs.FS, err error) {
-	if strings.Index(rescpath, "/") == 0 {
-		rescpath = rescpath[1:]
-	}
-	fullpath = "resource/" + rescpath
+func GetResourceFile(fullpath string) (fss fs.FS, err error) {
+	// if strings.Index(rescpath, "/") == 0 {
+	// 	rescpath = rescpath[1:]
+	// }
+	// fullpath = resourceDir + "/" + rescpath
+	// fullpath = filepath.Join(resourceDir, rescpath)
+	fmt.Printf("----GetResourceFile--fullpath(%s)---\n", fullpath)
 	var finfo fs.FileInfo
 	finfo, err = os.Stat(fullpath)
 	pwd, _ := os.Getwd()

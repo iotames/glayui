@@ -15,7 +15,7 @@ type Routing struct {
 func GetDefaultRoutingList() []Routing {
 	return []Routing{
 		{Path: "/", handler: ctl.Home},
-		{Path: "/hello", handler: hello},
-		{Path: "/debug", handler: debug},
+		{Path: "/hello", handler: ctl.Hello},
+		{Path: "/debug", handler: ctl.Debug},
 	}
 }

@@ -19,10 +19,10 @@ const GTPL_DELIM_LEFT = `<{%`
 const GTPL_DELIM_RIGHT = `%}>`
 
 type Gtpl struct {
-	t                     *template.Template
-	funcMap               template.FuncMap
-	delimLeft, delimRight string
-	buff                  bytes.Buffer
+	t                                      *template.Template
+	funcMap                                template.FuncMap
+	resourceDirPath, delimLeft, delimRight string
+	buff                                   bytes.Buffer
 }
 
 func NewTpl(leftDelim, rightDelim string) *Gtpl {
@@ -31,7 +31,10 @@ func NewTpl(leftDelim, rightDelim string) *Gtpl {
 	}
 	return &Gtpl{delimLeft: leftDelim, delimRight: rightDelim}
 }
-
+func (g *Gtpl) SetResourceDirPath(dpath string) *Gtpl {
+	g.resourceDirPath = dpath
+	return g
+}
 func (g *Gtpl) SetTemplate(t *template.Template) *Gtpl {
 	g.t = t
 	return g
@@ -48,14 +51,23 @@ func (g *Gtpl) SetDataByTplText(tpltext string, data any, wr io.Writer) error {
 
 func (g *Gtpl) SetDataByTplFile(fpath string, data any, wr io.Writer) error {
 	g.t = g.newTpl(filepath.Base(fpath))
-	t, err := g.t.ParseFiles(fpath)
+	t, err := g.t.ParseFiles(g.getResourceFullPath(fpath))
 	if err != nil {
 		return err
 	}
 	return g.execTpl(t, data, wr)
 }
+
+func (g Gtpl) getResourceFullPath(fpath string) string {
+	resourcePath := g.resourceDirPath
+	if resourcePath == "" {
+		resourcePath = resource.RESOURCE_DIR
+	}
+	return filepath.Join(resourcePath, fpath)
+}
+
 func (g *Gtpl) SetDataFromResource(fpath string, data any, wr io.Writer) error {
-	_, fss, err := resource.GetResourceFile(fpath)
+	fss, err := resource.GetResourceFile(g.getResourceFullPath(fpath))
 	if err != nil {
 		fmt.Printf("-----resource.GetResourceFile--err(%v)\n", err)
 		return err

@@ -8,7 +8,7 @@ import (
 )
 
 type MiddleHandle interface {
-	Handler(w http.ResponseWriter, r *http.Request) (subNext bool, mainNext bool)
+	Handler(w http.ResponseWriter, r *http.Request) (next bool)
 }
 
 // middleStatic 静态资源中间件
@@ -32,7 +32,7 @@ func NewMiddleRouter(routingList []Routing) *middleRouter {
 }
 
 // Handler 路由中间件。处理业务逻辑
-func (m middleRouter) Handler(w http.ResponseWriter, r *http.Request) (subNext bool, mainNext bool) {
+func (m middleRouter) Handler(w http.ResponseWriter, r *http.Request) (subNext bool) {
 	routings := m.routingList
 	isMatch := false
 	rpath := r.URL.Path
@@ -61,7 +61,7 @@ func (m middleRouter) Handler(w http.ResponseWriter, r *http.Request) (subNext b
 		ResponseNotFound(w, r)
 	}
 
-	return true, true
+	return true
 }
 
 // 静态资源中间件 NewMiddleStatic
@@ -75,7 +75,7 @@ func NewMiddleStatic(wwwroot string, urlPathBegin []string) *middleStatic {
 }
 
 // middleStatic 定义静态资源
-func (m middleStatic) Handler(w http.ResponseWriter, r *http.Request) (subNext bool, mainNext bool) {
+func (m middleStatic) Handler(w http.ResponseWriter, r *http.Request) (subNext bool) {
 	rpath := r.URL.Path
 	fpath := m.wwwrootDir + rpath
 	for _, v := range m.staticUrlPath {
@@ -86,34 +86,33 @@ func (m middleStatic) Handler(w http.ResponseWriter, r *http.Request) (subNext b
 				if os.IsNotExist(err) {
 					// 文件不存在
 					// errWrite(w, "file IsNotExist ", 400)
-					return true, true
-				} else {
-					// 其他错误
-					errWrite(w, err.Error(), 500)
+					return true
 				}
-				return false, false
+				// 其他错误
+				errWrite(w, err.Error(), 500)
+				return false
 			}
 
 			if finfo.IsDir() {
 				errWrite(w, "not allow visit dir path", 400)
-				return false, false
+				return false
 			}
 
 			f, err := os.Open(fpath)
 			if err != nil {
 				errWrite(w, err.Error(), 500)
-				return false, false
+				return false
 			}
 			b, err := io.ReadAll(f)
 			if err != nil {
 				errWrite(w, err.Error(), 500)
-				return false, false
+				return false
 			}
 			w.Write(b)
-			return false, false
+			return false
 		}
 	}
-	return true, true
+	return true
 }
 
 // NewMiddleCORS CORS中间件: 跨域设置
@@ -125,17 +124,14 @@ func NewMiddleCORS(allowOrigin string) *middleCORS {
 	return &middleCORS{allowOrigin: allowOrigin}
 }
 
-func (m middleCORS) Handler(w http.ResponseWriter, r *http.Request) (subNext bool, mainNext bool) {
+func (m middleCORS) Handler(w http.ResponseWriter, r *http.Request) (subNext bool) {
 	w.Header().Add("Access-Control-Allow-Origin", "*") // 可将将 * 替换为指定的域名
 	w.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
 	w.Header().Add("Access-Control-Allow-Headers", "Origin, Content-Length, Content-Type, Accept, Token, Auth-Token, X-Requested-With")
 	w.Header().Add("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Cache-Control, Content-Language, Content-Type")
 	w.Header().Add("Access-Control-Allow-Credentials", "true")
 	w.Header().Add("Access-Control-Allow-Origin", m.allowOrigin)
-	if r.Method == "OPTIONS" {
-		return false, false
-	}
-	return true, true
+	return r.Method != "OPTIONS"
 }
 
 // GetDefaultMiddlewareList 获取中间件列表。按数组列表的顺序依次执行中间件
@@ -144,19 +140,6 @@ func GetDefaultMiddlewareList() []MiddleHandle {
 		NewMiddleCORS("*"),
 		NewMiddleStatic("", []string{"/static/"}),
 	}
-}
-
-// middleware 中间件的处理逻辑。按顺序依次执行中间件
-func middleware(w http.ResponseWriter, r *http.Request, middles []MiddleHandle) bool {
-	var next bool
-	for _, m := range middles {
-		var next1 bool
-		next1, next = m.Handler(w, r)
-		if !next1 {
-			break
-		}
-	}
-	return next
 }
 
 func errWrite(w http.ResponseWriter, msg string, code int) {

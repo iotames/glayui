@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/fs"
 
-	// "fmt"
 	"io"
 	// "os"
 	"path/filepath"
@@ -58,6 +57,7 @@ func (g *Gtpl) SetDataByTplFile(fpath string, data any, wr io.Writer) error {
 func (g *Gtpl) SetDataFromResource(fpath string, data any, wr io.Writer) error {
 	_, fss, err := resource.GetResourceFile(fpath)
 	if err != nil {
+		fmt.Printf("-----resource.GetResourceFile--err(%v)\n", err)
 		return err
 	}
 	return g.SetDataByTplFS(fpath, fss, data, wr)

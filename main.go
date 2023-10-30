@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	s := web.NewServer(":1598")
+	s := web.NewEasyServer(":1598")
 	s.ListenAndServe()
 }
 

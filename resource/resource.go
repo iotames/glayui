@@ -18,7 +18,9 @@ func GetResourceFile(rescpath string) (fullpath string, fss fs.FS, err error) {
 	fullpath = "resource/" + rescpath
 	var finfo fs.FileInfo
 	finfo, err = os.Stat(fullpath)
+	pwd, _ := os.Getwd()
 	if err != nil {
+		fmt.Printf("-----GetResourceFile--os.Stat-err(%v)-InPath(%s)\n", err, pwd)
 		return
 	}
 	if finfo.IsDir() {

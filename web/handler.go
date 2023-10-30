@@ -7,14 +7,9 @@ import (
 	"github.com/iotames/glayui/gtpl"
 )
 
-func httpHandler(w http.ResponseWriter, r *http.Request) {
-	if !middleware(w, r) {
-		return
-	}
-}
-
-func PageNotFound(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("PageNotFound"))
+func ResponseNotFound(w http.ResponseWriter, r *http.Request) {
+	dt := NewApiDataNotFound()
+	w.Write(dt.Bytes())
 }
 
 func hello(w http.ResponseWriter, r *http.Request) {
@@ -29,7 +24,9 @@ func hello(w http.ResponseWriter, r *http.Request) {
 	fpath := `tpl/demo/table1.html`
 	err := tpl.SetDataFromResource(fpath, data, w)
 	if err != nil {
-		fmt.Printf("----服务器错误(%v)---", err)
+		resp := NewApiDataServerError(err.Error())
+		w.Write(resp.Bytes())
+		fmt.Printf("----服务器错误(%v)---\n", resp.String())
 	}
 }
 
@@ -38,6 +35,8 @@ func debug(w http.ResponseWriter, r *http.Request) {
 	fpath := `tpl/demo/layout.html`
 	err := tpl.SetDataFromResource(fpath, "hello layout", w)
 	if err != nil {
-		fmt.Printf("----服务器错误(%v)---", err)
+		resp := NewApiDataServerError(err.Error())
+		w.Write(resp.Bytes())
+		fmt.Printf("----服务器错误(%v)---\n", resp.String())
 	}
 }

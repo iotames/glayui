@@ -28,7 +28,7 @@ func Hello(w http.ResponseWriter, r *http.Request) {
 
 func Debug(w http.ResponseWriter, r *http.Request) {
 	tpl := gtpl.GetTpl()
-	fpath := `tpl/demo/layout.html`
+	fpath := `tpl/demo/layout1.html`
 	err := tpl.SetDataFromResource(fpath, "hello layout", w)
 	if err != nil {
 		resp := response.NewApiDataServerError(err.Error())

@@ -16,7 +16,7 @@ func Home(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tpl := gtpl.GetTpl()
-	fpath := `tpl/demo/layout.html`
+	fpath := `tpl/demo/layout1.html`
 	// err := tpl.SetDataFromResource(fpath, "hello layout", w)
 	err := tpl.SetDataByTplFile(fpath, "hello layout", w)
 	if err != nil {

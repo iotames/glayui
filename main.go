@@ -13,6 +13,7 @@ import (
 func main() {
 	s := web.NewEasyServer(":1598")
 	cpt := component.NewLayout("")
+	cpt.SetGtpl(gtpl.GetTpl())
 	s.AddHandler("GET", "/layout", func(ctx web.Context) {
 		cpt.SetTitle("THIS is TITLE")
 		cpt.SetContent("hello This is Content 99999999")

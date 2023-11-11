@@ -20,6 +20,8 @@ type EasyServer struct {
 	middles     []MiddleHandle
 }
 
+// NewEasyServer addr like: ":1598", "127.0.0.1:1598"
+// You Can SET ENV: USE_EMBED_FILE=true To UseEmbedFile
 func NewEasyServer(addr string) *EasyServer {
 	fmt.Printf(`
 	欢迎使用 GlayUI

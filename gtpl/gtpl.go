@@ -49,6 +49,8 @@ func (g *Gtpl) SetDataByTplText(tpltext string, data any, wr io.Writer) error {
 	return g.execTpl(t, data, wr)
 }
 
+// SetDataByTplFile 使用模板文件设置返回值
+// fpath 相对于resource目录的相对路径。
 func (g *Gtpl) SetDataByTplFile(fpath string, data any, wr io.Writer) error {
 	g.t = g.newTpl(filepath.Base(fpath))
 	t, err := g.t.ParseFiles(g.getResourceFullPath(fpath))
@@ -66,13 +68,15 @@ func (g Gtpl) getResourceFullPath(fpath string) string {
 	return filepath.Join(resourcePath, fpath)
 }
 
+// SetDataFromResource 使用内嵌的静态资源系统设置返回值
+// fpath 相对于resource目录的相对路径。
 func (g *Gtpl) SetDataFromResource(fpath string, data any, wr io.Writer) error {
-	fss, err := resource.GetResourceFile(g.getResourceFullPath(fpath))
-	if err != nil {
-		fmt.Printf("-----resource.GetResourceFile--err(%v)\n", err)
-		return err
-	}
-	return g.SetDataByTplFS(fpath, fss, data, wr)
+	// fss, err := resource.GetResourceFile(g.getResourceFullPath(fpath))
+	// if err != nil {
+	// 	fmt.Printf("-----resource.GetResourceFile--err(%v)\n", err)
+	// 	return err
+	// }
+	return g.SetDataByTplFS(fpath, resource.ResourceFs, data, wr)
 }
 func (g *Gtpl) SetDataByTplFS(fpath string, fsfs fs.FS, data any, wr io.Writer) error {
 	g.t = g.newTpl(filepath.Base(fpath))

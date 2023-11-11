@@ -2,9 +2,13 @@ package web
 
 import (
 	"io"
+	"io/fs"
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/iotames/glayui/conf"
+	"github.com/iotames/glayui/resource"
 )
 
 type MiddleHandle interface {
@@ -69,19 +73,33 @@ func (m middleRouter) Handler(w http.ResponseWriter, r *http.Request) (subNext b
 // urlPathBegin 启用静态资源的URL路径。必须以正斜杠/开头和结尾。如 []string{"/static/"}
 func NewMiddleStatic(wwwroot string, urlPathBegin []string) *middleStatic {
 	if wwwroot == "" {
-		wwwroot = "resource"
+		wwwroot = resource.RESOURCE_DIR
 	}
 	return &middleStatic{wwwrootDir: wwwroot, staticUrlPath: urlPathBegin}
 }
 
 // middleStatic 定义静态资源
 func (m middleStatic) Handler(w http.ResponseWriter, r *http.Request) (subNext bool) {
+	var err error
 	rpath := r.URL.Path
 	fpath := m.wwwrootDir + rpath
+	if conf.UseEmbedFile() {
+		fpath = rpath
+		if strings.Index(rpath, "/") == 0 {
+			fpath = strings.Replace(fpath, "/", "", 1)
+		}
+	}
+
 	for _, v := range m.staticUrlPath {
 		if strings.Index(rpath, v) == 0 {
 			// 匹配命中URL静态资源
-			finfo, err := os.Stat(fpath)
+			var finfo fs.FileInfo
+			if conf.UseEmbedFile() {
+				finfo, err = fs.Stat(resource.ResourceFs, fpath)
+			} else {
+				finfo, err = os.Stat(fpath)
+			}
+
 			if err != nil {
 				if os.IsNotExist(err) {
 					// 文件不存在
@@ -98,12 +116,18 @@ func (m middleStatic) Handler(w http.ResponseWriter, r *http.Request) (subNext b
 				return false
 			}
 
-			f, err := os.Open(fpath)
-			if err != nil {
-				errWrite(w, err.Error(), 500)
-				return false
+			var b []byte
+			if conf.UseEmbedFile() {
+				b, err = resource.ResourceFs.ReadFile(fpath)
+			} else {
+				f, err := os.Open(fpath)
+				if err != nil {
+					errWrite(w, err.Error(), 500)
+					return false
+				}
+				b, err = io.ReadAll(f)
 			}
-			b, err := io.ReadAll(f)
+
 			if err != nil {
 				errWrite(w, err.Error(), 500)
 				return false

@@ -61,11 +61,10 @@ func (g *Gtpl) SetDataByTplFile(fpath string, data any, wr io.Writer) error {
 }
 
 func (g Gtpl) getResourceFullPath(fpath string) string {
-	resourcePath := g.resourceDirPath
-	if resourcePath == "" {
-		resourcePath = resource.RESOURCE_DIR
+	if g.resourceDirPath == "" {
+		g.resourceDirPath = resource.RESOURCE_DIR
 	}
-	return filepath.Join(resourcePath, fpath)
+	return filepath.Join(g.resourceDirPath, fpath)
 }
 
 // SetDataFromResource 使用内嵌的静态资源系统设置返回值

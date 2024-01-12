@@ -21,7 +21,8 @@ type Layout struct {
 // 使用 USE_EMBED_TPL 环境变量 设置是否使用嵌入静态资源文件。USE_EMBED_TPL=1 使用嵌入的资源文件。否则读取外部静态文件。
 func NewLayout(fpath string) *Layout {
 	l := &Layout{}
-	if fpath == "" {
+	l.tplpath = fpath
+	if l.tplpath == "" {
 		l.tplpath = "tpl/layout.html"
 	}
 	l.name = "LAYOUT"

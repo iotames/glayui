@@ -24,7 +24,8 @@ type Table struct {
 // 使用 USE_EMBED_TPL 环境变量 设置是否使用嵌入静态资源文件。USE_EMBED_TPL=1 使用嵌入的资源文件。否则读取外部静态文件。
 func NewTable(fpath string) *Table {
 	l := &Table{}
-	if fpath == "" {
+	l.tplpath = fpath
+	if l.tplpath == "" {
 		l.tplpath = "tpl/table.html"
 	}
 	l.name = "TABLE"

@@ -3,6 +3,8 @@ package web
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/iotames/glayui/component"
 )
 
 // type WebComponent interface {
@@ -12,6 +14,10 @@ import (
 type Context struct {
 	Writer  http.ResponseWriter
 	Request *http.Request
+}
+
+func (c Context) NewTable() *component.Table {
+	return component.NewTable("")
 }
 
 type EasyServer struct {

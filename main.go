@@ -5,10 +5,13 @@ import (
 	"fmt"
 
 	"github.com/iotames/glayui/component"
+	"github.com/iotames/glayui/gtpl"
 	"github.com/iotames/glayui/web"
 )
 
 func main() {
+	tpl := gtpl.GetTpl()
+	tpl.SetResourceDirPath("resource")
 	s := web.NewEasyServer(":1598")
 	fmt.Printf("-----You Can SET--ENV: USE_EMBED_FILE=true--toUseEmbedFile---\n")
 	cpt := component.NewLayout("")

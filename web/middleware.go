@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"io"
 	"io/fs"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/iotames/glayui/conf"
+	"github.com/iotames/glayui/gtpl"
 	"github.com/iotames/glayui/resource"
 )
 
@@ -73,7 +75,7 @@ func (m middleRouter) Handler(w http.ResponseWriter, r *http.Request) (subNext b
 // urlPathBegin 启用静态资源的URL路径。必须以正斜杠/开头和结尾。如 []string{"/static/"}
 func NewMiddleStatic(wwwroot string, urlPathBegin []string) *middleStatic {
 	if wwwroot == "" {
-		wwwroot = resource.RESOURCE_DIR
+		wwwroot = gtpl.GetTpl().GetResourceDirPath()
 	}
 	return &middleStatic{wwwrootDir: wwwroot, staticUrlPath: urlPathBegin}
 }
@@ -120,7 +122,8 @@ func (m middleStatic) Handler(w http.ResponseWriter, r *http.Request) (subNext b
 			if conf.UseEmbedFile() {
 				b, err = resource.ResourceFs.ReadFile(fpath)
 			} else {
-				f, err := os.Open(fpath)
+				var f *os.File
+				f, err = os.Open(fpath)
 				if err != nil {
 					errWrite(w, err.Error(), 500)
 					return false
@@ -132,6 +135,13 @@ func (m middleStatic) Handler(w http.ResponseWriter, r *http.Request) (subNext b
 				errWrite(w, err.Error(), 500)
 				return false
 			}
+			if strings.Contains(rpath, `.css`) {
+				w.Header().Set(`Content-Type`, `text/css`)
+			}
+			if strings.Contains(rpath, `.js`) {
+				w.Header().Set(`Content-Type`, `application/javascript`)
+			}
+			w.Header().Set(`Content-Length`, fmt.Sprintf("%d", len(b)))
 			w.Write(b)
 			return false
 		}

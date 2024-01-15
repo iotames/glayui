@@ -19,6 +19,9 @@ type Context struct {
 func (c Context) NewTable() *component.Table {
 	return component.NewTable("")
 }
+func (c Context) NewForm() *component.Form {
+	return component.NewForm("")
+}
 
 type EasyServer struct {
 	httpServer  *http.Server

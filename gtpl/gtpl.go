@@ -31,6 +31,12 @@ func NewTpl(leftDelim, rightDelim string) *Gtpl {
 	}
 	return &Gtpl{delimLeft: leftDelim, delimRight: rightDelim}
 }
+func (g *Gtpl) GetResourceDirPath() string {
+	if g.resourceDirPath == "" {
+		g.resourceDirPath = resource.RESOURCE_DIR
+	}
+	return g.resourceDirPath
+}
 func (g *Gtpl) SetResourceDirPath(dpath string) *Gtpl {
 	g.resourceDirPath = dpath
 	return g
@@ -61,10 +67,7 @@ func (g *Gtpl) SetDataByTplFile(fpath string, data any, wr io.Writer) error {
 }
 
 func (g Gtpl) getResourceFullPath(fpath string) string {
-	if g.resourceDirPath == "" {
-		g.resourceDirPath = resource.RESOURCE_DIR
-	}
-	return filepath.Join(g.resourceDirPath, fpath)
+	return filepath.Join(g.GetResourceDirPath(), fpath)
 }
 
 // SetDataFromResource 使用内嵌的静态资源系统设置返回值

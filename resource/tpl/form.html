@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>FORM-Demo</title>
+  <title><{% .Title %}></title>
   <!-- 请勿在项目正式环境中引用该 layui.css 地址 -->
   <link href="/static/layui/css/layui.css" rel="stylesheet">
 </head>
@@ -12,37 +12,20 @@
 .demo-reg-container{width: 320px; margin: 21px auto 0;}
 .demo-reg-other .layui-icon{position: relative; display: inline-block; margin: 0 2px; top: 2px; font-size: 26px;}
 </style>
-<form class="layui-form">
+
+<form class="layui-form" method="<{% .SubmitMethod %}>" action="<{% .SubmitUrl %}>">
   <div class="demo-reg-container">
-    <div class="layui-form-item">
-      <div class="layui-row">
-        <div class="layui-col-xs7">
-          <div class="layui-input-wrap">
-            <div class="layui-input-prefix">
-              <i class="layui-icon layui-icon-cellphone"></i>
-            </div>
-            <input type="text" name="cellphone" value="" lay-verify="required|phone" placeholder="手机号" lay-reqtext="请填写手机号" autocomplete="off" class="layui-input" id="reg-cellphone">
-          </div>
-        </div>
-        <div class="layui-col-xs5">
-          <div style="margin-left: 11px;">
-            <button type="button" class="layui-btn layui-btn-fluid layui-btn-primary" lay-on="reg-get-vercode">获取验证码</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <h3><{% .Title %}></h3>
+    <br>
+
+    <%{range .FormItems}%>
+    <%{ .String }%>
+    <%{end}%>
 
     <div class="layui-form-item">
-      <div class="layui-input-wrap">
-        <div class="layui-input-prefix">
-          <i class="layui-icon layui-icon-username"></i>
-        </div>
-        <input type="text" name="nickname" value="" lay-verify="required" placeholder="昵称" autocomplete="off" class="layui-input" lay-affix="clear">
-      </div>
-    </div>
-
-    <div class="layui-form-item">
-      <button class="layui-btn layui-btn-fluid" lay-submit lay-filter="demo-reg">登录</button>
+      <button class="layui-btn layui-btn-fluid" lay-submit lay-filter="demo-reg">
+        <{% .SubmitButton.Text %}>
+      </button>
     </div>
   </div>
 </form>
@@ -53,17 +36,6 @@ layui.use(function(){
   var form = layui.form;
   var layer = layui.layer;
   var util = layui.util;
-  
-  // 自定义验证规则
-  form.verify({
-    // 确认密码
-    confirmPassword: function(value, item){
-      var passwordValue = $('#reg-password').val();
-      if(value !== passwordValue){
-        return '两次密码输入不一致';
-      }
-    }
-  });
   
   // 提交事件
   form.on('submit(demo-reg)', function(data){

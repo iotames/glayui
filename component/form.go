@@ -8,7 +8,11 @@ import (
 )
 
 type FormData struct {
-	Title string
+	Title, Url   string
+	SubmitButton Button
+	SubmitMethod string
+	SubmitUrl    string
+	FormItems    []IFromItem
 }
 
 type Form struct {
@@ -35,11 +39,37 @@ func (l *Form) SetData(dt FormData) {
 	l.data = dt
 }
 
+func (l *Form) SetTitle(title string) *Form {
+	l.data.Title = title
+	return l
+}
+
+func (l *Form) SetSubmitButton(btn Button) *Form {
+	l.data.SubmitButton = btn
+	return l
+}
+func (l *Form) AddFormItem(item IFromItem) *Form {
+	l.data.FormItems = append(l.data.FormItems, item)
+	return l
+}
+func (l *Form) SetSubmitUrl(suburl string) *Form {
+	l.data.SubmitUrl = suburl
+	return l
+}
+func (l *Form) setDefaultData() {
+	if l.data.SubmitButton.Text == "" {
+		l.data.SubmitButton.Text = "提交"
+	}
+	if l.data.SubmitMethod == "" {
+		l.data.SubmitMethod = "post"
+	}
+}
 func (l Form) Exec(w io.Writer) {
 	var err error
 	if l.gtpl == nil {
 		panic("gtpl can not be empty")
 	}
+	l.setDefaultData()
 	if l.useEmbedTpl {
 		err = l.gtpl.SetDataFromResource(l.tplpath, l.data, w)
 	} else {

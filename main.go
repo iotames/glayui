@@ -13,6 +13,7 @@ func main() {
 	tpl := gtpl.GetTpl()
 	tpl.SetResourceDirPath("resource")
 	s := web.NewEasyServer(":1598")
+	s.SetData("dt111", "dtv126")
 	fmt.Printf("-----You Can SET--ENV: USE_EMBED_FILE=true--toUseEmbedFile---\n")
 	cpt := component.NewLayout("")
 	s.AddHandler("GET", "/layout", func(ctx web.Context) {
@@ -21,6 +22,9 @@ func main() {
 		cpt.Exec(ctx.Writer)
 	})
 	s.AddHandler("GET", "/table", func(ctx web.Context) {
+		dtd := ctx.Server.GetData("dt111")
+		fmt.Printf("--------dtd(%v)-----vvvv(%s)---\n", dtd, dtd.Value.(string))
+
 		w := ctx.Writer
 		// r := ctx.Request
 		cpt.SetTitle("THIS is Data Table Title")

@@ -76,7 +76,7 @@ func (m middleRouter) Handler(w http.ResponseWriter, r *http.Request, dataFlow *
 	return true
 }
 
-// 静态资源中间件 NewMiddleStatic
+// NewMiddleStatic 静态资源中间件。例: NewMiddleStatic("", []string{"/static/"})
 // wwwroot 网站根目录。字符串末尾不用添加斜杠/。默认值为 "resource"
 // urlPathBegin 启用静态资源的URL路径。必须以正斜杠/开头和结尾。如 []string{"/static/"}
 func NewMiddleStatic(wwwroot string, urlPathBegin []string) *middleStatic {
@@ -155,7 +155,7 @@ func (m middleStatic) Handler(w http.ResponseWriter, r *http.Request, dataFlow *
 	return true
 }
 
-// NewMiddleCORS CORS中间件: 跨域设置
+// NewMiddleCORS CORS中间件: 跨域设置。例: NewMiddleCORS("*")
 // allowOrigin: 允许跨域的站点。默认值为 "*"。可将将 * 替换为指定的域名
 func NewMiddleCORS(allowOrigin string) *middleCORS {
 	if allowOrigin == "" {

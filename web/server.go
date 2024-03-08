@@ -102,6 +102,10 @@ func (s *EasyServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // 	s.middles = middles
 // }
 
+func (s *EasyServer) AddMiddleware(middle MiddleHandle) {
+	s.middles = append(s.middles, middle)
+}
+
 func (s *EasyServer) AddRouting(routing Routing) {
 	s.routingList = append(s.routingList, routing)
 }
@@ -112,7 +116,7 @@ func (s *EasyServer) AddHandler(method, urlpath string, ctxfunc func(ctx Context
 		ctxfunc(hctx)
 	}
 	routing := Routing{Methods: []string{method}, Path: urlpath, handler: handler}
-	s.routingList = append(s.routingList, routing)
+	s.AddRouting(routing)
 }
 
 func (s *EasyServer) ListenAndServe() error {

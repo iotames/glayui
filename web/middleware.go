@@ -14,7 +14,7 @@ import (
 )
 
 type MiddleHandle interface {
-	Handler(w http.ResponseWriter, r *http.Request) (next bool)
+	Handler(w http.ResponseWriter, r *http.Request, dataFlow *DataFlow) (next bool)
 }
 
 // middleStatic 静态资源中间件
@@ -38,7 +38,7 @@ func NewMiddleRouter(routingList []Routing) *middleRouter {
 }
 
 // Handler 路由中间件。处理业务逻辑
-func (m middleRouter) Handler(w http.ResponseWriter, r *http.Request) (subNext bool) {
+func (m middleRouter) Handler(w http.ResponseWriter, r *http.Request, dataFlow *DataFlow) (subNext bool) {
 	routings := m.routingList
 	isMatch := false
 	rpath := r.URL.Path
@@ -46,24 +46,30 @@ func (m middleRouter) Handler(w http.ResponseWriter, r *http.Request) (subNext b
 
 	for _, rt := range routings {
 		if rt.Path == rpath {
+			// UrlPath匹配成功
 			if len(rt.Methods) == 0 {
+				// 匹配任意的Request Mothod请求方法
 				isMatch = true
 			} else {
 				for _, m := range rt.Methods {
 					// strings.ToUpper(m) == strings.ToUpper(rmethod)
 					if strings.EqualFold(m, rmethod) {
+						// 匹配指定的Request Mothod请求方法。如GET, POST, PUT, DELETE
 						isMatch = true
+						break
 					}
 				}
 			}
 			if isMatch {
-				rt.handler(w, r)
+				// 匹配UrlPath和RequestMethod，执行处理函数
+				rt.handler(w, r, dataFlow)
 				break
 			}
 		}
 	}
 
 	if !isMatch {
+		// 匹配不到UrlPath和RequestMethod
 		ResponseNotFound(w, r)
 	}
 
@@ -81,7 +87,7 @@ func NewMiddleStatic(wwwroot string, urlPathBegin []string) *middleStatic {
 }
 
 // middleStatic 定义静态资源
-func (m middleStatic) Handler(w http.ResponseWriter, r *http.Request) (subNext bool) {
+func (m middleStatic) Handler(w http.ResponseWriter, r *http.Request, dataFlow *DataFlow) (subNext bool) {
 	var err error
 	rpath := r.URL.Path
 	fpath := m.wwwrootDir + rpath
@@ -150,7 +156,7 @@ func (m middleStatic) Handler(w http.ResponseWriter, r *http.Request) (subNext b
 }
 
 // NewMiddleCORS CORS中间件: 跨域设置
-// allowOrigin: 允许跨域的站点。默认值为 "*"
+// allowOrigin: 允许跨域的站点。默认值为 "*"。可将将 * 替换为指定的域名
 func NewMiddleCORS(allowOrigin string) *middleCORS {
 	if allowOrigin == "" {
 		allowOrigin = "*"
@@ -158,13 +164,13 @@ func NewMiddleCORS(allowOrigin string) *middleCORS {
 	return &middleCORS{allowOrigin: allowOrigin}
 }
 
-func (m middleCORS) Handler(w http.ResponseWriter, r *http.Request) (subNext bool) {
-	w.Header().Add("Access-Control-Allow-Origin", "*") // 可将将 * 替换为指定的域名
+func (m middleCORS) Handler(w http.ResponseWriter, r *http.Request, dataFlow *DataFlow) (subNext bool) {
+	w.Header().Add("Access-Control-Allow-Origin", m.allowOrigin)
 	w.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
 	w.Header().Add("Access-Control-Allow-Headers", "Origin, Content-Length, Content-Type, Accept, Token, Auth-Token, X-Requested-With")
 	w.Header().Add("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Cache-Control, Content-Language, Content-Type")
 	w.Header().Add("Access-Control-Allow-Credentials", "true")
-	w.Header().Add("Access-Control-Allow-Origin", m.allowOrigin)
+	dataFlow.SetDataReadonly("CorsAllowOrigin", m.allowOrigin)
 	return r.Method != "OPTIONS"
 }
 

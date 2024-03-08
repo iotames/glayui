@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"time"
 
 	"github.com/iotames/glayui/component"
 	"github.com/iotames/glayui/gtpl"
@@ -17,6 +18,11 @@ func main() {
 	fmt.Printf("-----You Can SET--ENV: USE_EMBED_FILE=true--toUseEmbedFile---\n")
 	cpt := component.NewLayout("")
 	s.AddHandler("GET", "/layout", func(ctx web.Context) {
+		df := ctx.DataFlow
+		dtkeys := df.GetDataKeys()
+		err := ctx.DataFlow.SetData("startat", "hello")
+		costime := time.Since(ctx.DataFlow.GetStartAt())
+		fmt.Printf("-------cors(%s)--dtkeys(%+v)--cost(%.6fs)--startat(%v)--resetErr(%v)---\n", df.GetStr("CorsAllowOrigin"), dtkeys, costime.Seconds(), df.GetStartAt(), err)
 		cpt.SetTitle("THIS is TITLE")
 		cpt.SetContent("hello This is Content 99999999")
 		cpt.Exec(ctx.Writer)
